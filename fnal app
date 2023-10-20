@@ -1,0 +1,186 @@
+{
+  "_id": ObjectId("unique_id"),
+  "classCode": "CS101",
+  "className": "Introduction to Computer Science",
+  "instructor": {
+    "firstName": "John",
+    "lastName": "Smith",
+    "email": "john.smith@example.com"
+  },
+  "students": [
+    {
+      "firstName": "Alice",
+      "lastName": "Johnson",
+      "studentID": "CS001",
+      "email": "alice@example.com"
+    },
+    {
+      "firstName": "Bob",
+      "lastName": "Williams",
+      "studentID": "CS002",
+      "email": "bob@example.com"
+    }
+    // Add more students as needed
+  ],
+  "schedule": {
+    "day": "Monday",
+    "time": "10:00 AM - 12:00 PM",
+    "room": "Room 101"
+  },
+  "term": "Fall 2023"
+}
+const express = require('express');
+const app = express();
+app.use(express.json());
+
+// Sample data representing a computer science class
+const computerScienceClass = [
+  {
+    _id: 1,
+    classCode: "CS101",
+    className: "Introduction to Computer Science",
+    // ...other class data
+  },
+  // Add more class data as needed
+];
+
+// Endpoint 1: Get all classes
+app.get('/classes', (req, res) => {
+  res.json(computerScienceClass);
+});
+
+// Endpoint 2: Get a specific class by ID
+app.get('/classes/:id', (req, res) => {
+  const classId = parseInt(req.params.id);
+  const classData = computerScienceClass.find((c) => c._id === classId);
+
+  if (!classData) {
+    return res.status(404).json({ error: 'Class not found' });
+  }
+
+  res.json(classData);
+});
+
+// Endpoint 3: Create a new class (POST request)
+app.post('/classes', (req, res) => {
+  const newClass = req.body;
+  computerScienceClass.push(newClass);
+  res.status(201).json(newClass);
+});
+
+// Endpoint 4: Update an existing class (PUT request)
+app.put('/classes/:id', (req, res) => {
+  const classId = parseInt(req.params.id);
+  const updatedClass = req.body;
+
+  // Find and update the class
+  const index = computerScienceClass.findIndex((c) => c._id === classId);
+  if (index === -1) {
+    return res.status(404).json({ error: 'Class not found' });
+  }
+
+  computerScienceClass[index] = updatedClass;
+  res.json(updatedClass);
+});
+
+// Endpoint 5: Delete a class by ID (DELETE request)
+app.delete('/classes/:id', (req, res) => {
+  const classId = parseInt(req.params.id);
+  const index = computerScienceClass.findIndex((c) => c._id === classId);
+
+  if (index === -1) {
+    return res.status(404).json({ error: 'Class not found' });
+  }
+
+  computerScienceClass.splice(index, 1);
+  res.json({ message: 'Class deleted' });
+});
+
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => {
+  console.log(`Server is running on port ${PORT}`);
+});
+import { Injectable } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+
+@Injectable({
+  providedIn: 'root'
+})
+export class ClassService {
+  private apiUrl = 'http://localhost:3000/classes'; // Update the URL to match your API
+
+  constructor(private http: HttpClient) {}
+
+  getAllClasses() {
+    return this.http.get(this.apiUrl);
+  }
+
+  getClassById(id: number) {
+    return this.http.get(`${this.apiUrl}/${id}`);
+  }
+}
+import { Component, OnInit } from '@angular/core';
+import { ClassService } from '../class.service';
+
+@Component({
+  selector: 'app-class-list',
+  templateUrl: './class-list.component.html',
+  styleUrls: ['./class-list.component.css']
+})
+export class ClassListComponent implements OnInit {
+  classes: any[] = [];
+
+  constructor(private classService: ClassService) {}
+
+  ngOnInit() {
+    this.classService.getAllClasses().subscribe((data: any[]) => {
+      this.classes = data;
+    });
+  }
+}
+import { Component, OnInit } from '@angular/core';
+import { ActivatedRoute } from '@angular/router';
+import { ClassService } from '../class.service';
+
+@Component({
+  selector: 'app-class-detail',
+  templateUrl: './class-detail.component.html',
+  styleUrls: ['./class-detail.component.css']
+})
+export class ClassDetailComponent implements OnInit {
+  classData: any = {};
+
+  constructor(private route: ActivatedRoute, private classService: ClassService) {}
+
+  ngOnInit() {
+    const classId = +this.route.snapshot.paramMap.get('id');
+    this.classService.getClassById(classId).subscribe((data: any) => {
+      this.classData = data;
+    });
+  }
+}
+import { NgModule } from '@angular/core';
+import { RouterModule, Routes } from '@angular/router';
+import { ClassListComponent } from './class-list/class-list.component';
+import { ClassDetailComponent } from './class-detail/class-detail.component';
+
+const routes: Routes = [
+  { path: '', component: ClassListComponent },
+  { path: 'class/:id', component: ClassDetailComponent }
+];
+
+@NgModule({
+  imports: [RouterModule.forRoot(routes)],
+  exports: [RouterModule]
+})
+export class AppRoutingModule {}
+<ul>
+  <li *ngFor="let class of classes">
+    <a [routerLink]="['/class', class._id]">{{ class.className }}</a>
+  </li>
+</ul>
+<div *ngIf="classData">
+  <h2>{{ classData.className }}</h2>
+  <p>Class Code: {{ classData.classCode }}</p>
+  <!-- Add more class details as needed -->
+</div>
